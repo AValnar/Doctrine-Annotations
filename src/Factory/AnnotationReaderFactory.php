@@ -25,6 +25,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Annotations\IndexedReader;
+use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\Cache;
 
@@ -34,11 +35,16 @@ class AnnotationReaderFactory
      * Return an object with fully injected dependencies
      *
      * @param array $parameters
-     * @return mixed
+     * @return Reader
      */
     public function create(array $parameters = [])
     {
-        $ignoredNames = ['author' => true, 'api' => true];
+        $ignoredNames = [
+            'author' => true,
+            'api' => true,
+            'copyright' => true,
+            'date' => true
+        ];
 
         AnnotationRegistry::registerLoader(function ($class) use ($ignoredNames) {
             return !isset($ignoredNames[$class]);
@@ -56,12 +62,16 @@ class AnnotationReaderFactory
 
         $debug = !(isset($parameters['debug']) && $parameters['debug'] === false);
 
-        return new IndexedReader(
-            new CachedReader(
-                new AnnotationReader(),
-                $cache,
-                $debug
-            )
+        $reader = new CachedReader(
+            new AnnotationReader(),
+            $cache,
+            $debug
         );
+
+        if (isset($parameters['indexed']) && $parameters['indexed'] === true) {
+            return new IndexedReader($reader);
+        }
+
+        return $reader;
     }
 }
