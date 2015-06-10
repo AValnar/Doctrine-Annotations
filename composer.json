@@ -1,0 +1,16 @@
+{
+    "name": "av/doctrine-annotations",
+    "description": "Easy Doctrince Annotations adapter for projects with silent auto loading",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+      "php": ">=5.6.0",
+      "doctrine/annotations": "1.2.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "AValnar\\Doctrine\\": ["src"],
+            "AValnar\\Tests\\Doctrine\\": ["tests"]
+        }
+    }
+}
