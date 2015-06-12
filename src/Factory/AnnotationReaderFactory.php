@@ -43,7 +43,10 @@ class AnnotationReaderFactory
             'author' => true,
             'api' => true,
             'copyright' => true,
-            'date' => true
+            'date' => true,
+            'version' => true,
+            'package' => true,
+            'method' => true
         ];
 
         AnnotationRegistry::registerLoader(function ($class) use ($ignoredNames) {
