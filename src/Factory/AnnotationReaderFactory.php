@@ -28,9 +28,29 @@ use Doctrine\Common\Annotations\IndexedReader;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\Cache;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class AnnotationReaderFactory
+final class AnnotationReaderFactory
 {
+    private $ignoredNames = [
+        'author' => true,
+        'api' => true,
+        'copyright' => true,
+        'date' => true,
+        'version' => true,
+        'package' => true,
+        'method' => true
+    ];
+
+    private function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults(array(
+            'cache'     => new ApcCache(),
+            'debug' => true,
+            'indexed' => true
+        ));
+    }
+
     /**
      * Return an object with fully injected dependencies
      *
@@ -39,42 +59,45 @@ class AnnotationReaderFactory
      */
     public function create(array $parameters = [])
     {
-        $ignoredNames = [
-            'author' => true,
-            'api' => true,
-            'copyright' => true,
-            'date' => true,
-            'version' => true,
-            'package' => true,
-            'method' => true
-        ];
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $parameters = $resolver->resolve($parameters);
 
-        AnnotationRegistry::registerLoader(function ($class) use ($ignoredNames) {
-            return !isset($ignoredNames[$class]);
-        });
+        $this->registerLoader();
+        $this->setIgnoredNames();
 
-        foreach ($ignoredNames as $name => $ignore) {
-            AnnotationReader::addGlobalIgnoredName($name);
+        if (!$parameters['cache'] instanceof Cache) {
+            throw new \InvalidArgumentException('"cache" has to be instance an instance of ' . Cache::class);
         }
-
-        if (isset($parameters['cache']) && $parameters['cache'] instanceof Cache) {
-            $cache = $parameters['cache'];
-        } else {
-            $cache = new ApcCache();
-        }
-
-        $debug = !(isset($parameters['debug']) && $parameters['debug'] === false);
 
         $reader = new CachedReader(
             new AnnotationReader(),
-            $cache,
-            $debug
+            $parameters['cache'],
+            $parameters['debug']
         );
 
-        if (isset($parameters['indexed']) && $parameters['indexed'] === true) {
+        if ($parameters['indexed'] === true) {
             return new IndexedReader($reader);
         }
 
         return $reader;
+    }
+
+    private function registerLoader()
+    {
+        $ignoredNames = $this->ignoredNames;
+
+        AnnotationRegistry::registerLoader(function ($class) use ($ignoredNames) {
+            return !isset($ignoredNames[$class]);
+        });
+    }
+
+    private function setIgnoredNames()
+    {
+        foreach ($this->ignoredNames as $name => $ignore) {
+            if ($ignore === true) {
+                AnnotationReader::addGlobalIgnoredName($name);
+            }
+        }
     }
 }
