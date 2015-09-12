@@ -1,6 +1,6 @@
 {
     "name": "av/doctrine-annotations",
-    "description": "Easy Doctrince Annotations adapter for projects with silent auto loading",
+    "description": "Simple Doctrine Annotations adapter for projects with silent auto loading",
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {

@@ -39,15 +39,35 @@ final class AnnotationReaderFactory
         'date' => true,
         'version' => true,
         'package' => true,
-        'method' => true
+        'method' => true,
+        'deprecated' => true
     ];
+
+    /**
+     * @var OptionsResolver
+     */
+    private $optionResolver = null;
+
+    /**
+     * @param OptionsResolver $optionResolver
+     */
+    public function __construct(OptionsResolver $optionResolver = null)
+    {
+        if ($optionResolver === null) {
+            $optionResolver = new OptionsResolver();
+        }
+
+        $this->optionResolver = $optionResolver;
+
+        $this->configureOptions($this->optionResolver);
+    }
 
     private function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
             'cache'     => new ApcCache(),
             'debug' => true,
-            'indexed' => true
+            'indexed' => false
         ));
     }
 
@@ -59,9 +79,7 @@ final class AnnotationReaderFactory
      */
     public function create(array $parameters = [])
     {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $parameters = $resolver->resolve($parameters);
+        $parameters = $this->optionResolver->resolve($parameters);
 
         $this->registerLoader();
         $this->setIgnoredNames();
