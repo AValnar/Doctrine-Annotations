@@ -33,14 +33,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 final class AnnotationReaderFactory
 {
     private $ignoredNames = [
-        'author' => true,
-        'api' => true,
-        'copyright' => true,
-        'date' => true,
-        'version' => true,
-        'package' => true,
-        'method' => true,
-        'deprecated' => true
+        'author',
+        'api',
+        'copyright',
+        'date',
+        'version',
+        'package',
+        'method',
+        'deprecated'
     ];
 
     /**
@@ -103,19 +103,15 @@ final class AnnotationReaderFactory
 
     private function registerLoader()
     {
-        $ignoredNames = $this->ignoredNames;
-
-        AnnotationRegistry::registerLoader(function ($class) use ($ignoredNames) {
-            return !isset($ignoredNames[$class]);
+        AnnotationRegistry::registerLoader(function ($class) {
+            return class_exists($class);
         });
     }
 
     private function setIgnoredNames()
     {
         foreach ($this->ignoredNames as $name => $ignore) {
-            if ($ignore === true) {
-                AnnotationReader::addGlobalIgnoredName($name);
-            }
+            AnnotationReader::addGlobalIgnoredName($name);
         }
     }
 }
